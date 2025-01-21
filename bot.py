@@ -92,7 +92,10 @@ async def file_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     file_path = os.path.join("uploads", file_name)
 
     os.makedirs("uploads", exist_ok=True)
-    await file.get_file().download_to_drive(file_path)
+    
+    # Properly await `get_file()` and then download the file
+    file_obj = await file.get_file()  # Await the coroutine to get the file object
+    await file_obj.download_to_drive(file_path)  # Download the file
 
     user_data[user_id]['file_input'] = file_path
 
@@ -124,6 +127,7 @@ async def file_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Missing column in the Excel file: {str(e)}")
     except Exception as e:
         await update.message.reply_text(f"An error occurred: {str(e)}")
+
 
 # Main Function to Run the Bot
 def main():
