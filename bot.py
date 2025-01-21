@@ -1,14 +1,12 @@
 import os
 from dotenv import load_dotenv
 from telegram import Update, InputFile
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 import pandas as pd
 import datetime
 
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
-
-# Get the Telegram token from environment variables
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 # Function to generate XML
@@ -72,12 +70,12 @@ def generate_xml(file_input, fn):
 
     return result_output
 
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text(
+async def start(update: Update, context: CallbackContext):
+    await update.message.reply_text(
         "Welcome! Please upload your Excel file to convert it to XML."
     )
 
-def handle_file(update: Update, context: CallbackContext):
+async def handle_file(update: Update, context: CallbackContext):
     user = update.message.from_user
     file = update.message.document
 
@@ -86,7 +84,7 @@ def handle_file(update: Update, context: CallbackContext):
     file_path = os.path.join("uploads", file_name)
 
     os.makedirs("uploads", exist_ok=True)
-    file.download(file_path)
+    await file.get_file().download(file_path)
 
     # Extract filename without extension
     fn = os.path.splitext(file_name)[0]
@@ -96,7 +94,7 @@ def handle_file(update: Update, context: CallbackContext):
 
     # Send the XML back to the user
     with open(result_path, 'rb') as result_file:
-        update.message.reply_document(
+        await update.message.reply_document(
             document=InputFile(result_file),
             filename=os.path.basename(result_path),
             caption="Here is your XML file!"
@@ -107,15 +105,12 @@ def handle_file(update: Update, context: CallbackContext):
     os.remove(result_path)
 
 def main():
-    updater = Updater(TOKEN)
+    application = Application.builder().token(TOKEN).build()
 
-    dispatcher = updater.dispatcher
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.Document.ALL, handle_file))
 
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(MessageHandler(Filters.document, handle_file))
-
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 if __name__ == "__main__":
     main()
