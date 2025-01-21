@@ -43,7 +43,17 @@ def generate_xml(file_input, output_dir):
 \n''')
 
         for _, row in df.iterrows():
-            row = {key: str(value) for key, value in row.to_dict().items()}
+            # Ensure numeric values are properly formatted as integers where necessary
+            row = {}
+            for key, value in df.iloc[i].to_dict().items():
+                if pd.api.types.is_numeric_dtype(df[key]):  # Check if the column is numeric
+                    if pd.notna(value):  # Ensure the value is not NaN
+                        row[key] = str(int(value)) if value == int(value) else str(value)
+                    else:
+                        row[key] = ""  # Handle NaN values explicitly
+                else:
+                    row[key] = str(value)
+
             filex.write(f'''
 <req-dtl>
 <pran>{row['PRAN NO']}</pran>
