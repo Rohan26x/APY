@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from telegram import Update, InputFile
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 import pandas as pd
 import datetime
 
@@ -76,12 +76,12 @@ def generate_xml(file_input, output_dir):
     return result_output
 
 # Command Handlers
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text(
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
         "Welcome to the APY EXIT Converter Bot! Please upload an Excel file to start."
     )
 
-def file_handler(update: Update, context: CallbackContext):
+async def file_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
     user_id = user.id
     user_data[user_id] = {}
@@ -92,11 +92,11 @@ def file_handler(update: Update, context: CallbackContext):
     file_path = os.path.join("uploads", file_name)
 
     os.makedirs("uploads", exist_ok=True)
-    file.download(file_path)
+    await file.get_file().download_to_drive(file_path)
 
     user_data[user_id]['file_input'] = file_path
 
-    update.message.reply_text(
+    await update.message.reply_text(
         "File received! Generating the XML file based on your input..."
     )
 
@@ -110,7 +110,7 @@ def file_handler(update: Update, context: CallbackContext):
 
         # Send the generated XML back to the user
         with open(result_path, 'rb') as result_file:
-            update.message.reply_document(
+            await update.message.reply_document(
                 document=InputFile(result_file),
                 filename=os.path.basename(result_path),
                 caption="XML file generated successfully!"
@@ -121,23 +121,21 @@ def file_handler(update: Update, context: CallbackContext):
         os.remove(result_path)
 
     except KeyError as e:
-        update.message.reply_text(f"Missing column in the Excel file: {str(e)}")
+        await update.message.reply_text(f"Missing column in the Excel file: {str(e)}")
     except Exception as e:
-        update.message.reply_text(f"An error occurred: {str(e)}")
+        await update.message.reply_text(f"An error occurred: {str(e)}")
 
 # Main Function to Run the Bot
 def main():
-    TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
-    updater = Updater(TOKEN)
+    # Initialize the Application
+    application = Application.builder().token(TOKEN).build()
 
-    dispatcher = updater.dispatcher
+    # Add command and message handlers
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.Document.ALL, file_handler))
 
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(MessageHandler(Filters.document, file_handler))
-
-    updater.start_polling()
-    updater.idle()
+    # Start the bot
+    application.run_polling()
 
 if __name__ == "__main__":
     main()
-
