@@ -61,7 +61,7 @@ def generate_xml(file_input, output_dir):
 <wdr-type>P</wdr-type>
 <share-to-wdr>100</share-to-wdr>
 <share-to-annuity>0</share-to-annuity>
-<exit-date>{row['EXIT DATE/STATUS']}</exit-date>
+<exit-date>{row['EXIT DATE']}</exit-date>
 <reason-of-closure>1</reason-of-closure>
 <subs-bank-dtls>
 <bank-ifs-flag>Y</bank-ifs-flag>
@@ -69,7 +69,7 @@ def generate_xml(file_input, output_dir):
 <bank-ifs-code>PUNB0SUPGB5</bank-ifs-code>
 <bank-micr-code></bank-micr-code>
 <bank-name>PUPGB</bank-name>
-<bank-branch>{row['SOL No']}</bank-branch>
+<bank-branch>{row['SOL NO']}</bank-branch>
 <bank-address>{row['BRANCH']}</bank-address>
 <bank-pin>{row['PINCODE']}</bank-pin>
 <active-bank-account>Y</active-bank-account>
