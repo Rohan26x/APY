@@ -42,36 +42,36 @@ def generate_xml(file_input, output_dir):
 </header>
 \n''')
 
-        for _, row in df.iterrows():
-            # Ensure numeric values are properly formatted as integers where necessary
-            row = {}
-            for key, value in df.iloc[i].to_dict().items():
+        for _, row in df.iterrows():  # No need to define `i`
+    # Ensure numeric values are properly formatted as integers where necessary
+            row_dict = {}  # Use a new variable to store the modified row data
+            for key, value in row.to_dict().items():
                 if pd.api.types.is_numeric_dtype(df[key]):  # Check if the column is numeric
                     if pd.notna(value):  # Ensure the value is not NaN
-                        row[key] = str(int(value)) if value == int(value) else str(value)
+                        row_dict[key] = str(int(value)) if value == int(value) else str(value)
                     else:
-                        row[key] = ""  # Handle NaN values explicitly
+                        row_dict[key] = ""  # Handle NaN values explicitly
                 else:
-                    row[key] = str(value)
+                    row_dict[key] = str(value)
 
-            filex.write(f'''
+        filex.write(f'''
 <req-dtl>
-<pran>{row['PRAN NO']}</pran>
+<pran>{row_dict['PRAN NO']}</pran>
 <wdr-due-to>EN</wdr-due-to>
 <wdr-type>P</wdr-type>
 <share-to-wdr>100</share-to-wdr>
 <share-to-annuity>0</share-to-annuity>
-<exit-date>{row['EXIT DATE']}</exit-date>
+<exit-date>{row_dict['EXIT DATE']}</exit-date>
 <reason-of-closure>1</reason-of-closure>
 <subs-bank-dtls>
 <bank-ifs-flag>Y</bank-ifs-flag>
-<account-no>{row['ACC NO']}</account-no>
+<account-no>{row_dict['ACC NO']}</account-no>
 <bank-ifs-code>PUNB0SUPGB5</bank-ifs-code>
 <bank-micr-code></bank-micr-code>
 <bank-name>PUPGB</bank-name>
-<bank-branch>{row['SOL NO']}</bank-branch>
-<bank-address>{row['BRANCH']}</bank-address>
-<bank-pin>{row['PINCODE']}</bank-pin>
+<bank-branch>{row_dict['SOL NO']}</bank-branch>
+<bank-address>{row_dict['BRANCH']}</bank-address>
+<bank-pin>{row_dict['PINCODE']}</bank-pin>
 <active-bank-account>Y</active-bank-account>
 </subs-bank-dtls>
 <doc-check-list>
@@ -81,6 +81,7 @@ def generate_xml(file_input, output_dir):
 </doc-check-list>
 </req-dtl>
 \n''')
+
 
         filex.write("</file>")
     return result_output
