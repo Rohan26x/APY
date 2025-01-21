@@ -42,9 +42,8 @@ def generate_xml(file_input, output_dir):
 </header>
 \n''')
 
-        for _, row in df.iterrows():  # No need to define `i`
-    # Ensure numeric values are properly formatted as integers where necessary
-            row_dict = {}  # Use a new variable to store the modified row data
+        for _, row in df.iterrows():  # Iterate through all rows
+            row_dict = {}  # Initialize a new dictionary for each row
             for key, value in row.to_dict().items():
                 if pd.api.types.is_numeric_dtype(df[key]):  # Check if the column is numeric
                     if pd.notna(value):  # Ensure the value is not NaN
@@ -54,7 +53,8 @@ def generate_xml(file_input, output_dir):
                 else:
                     row_dict[key] = str(value)
 
-        filex.write(f'''
+            # Write data for each row in the XML
+            filex.write(f'''
 <req-dtl>
 <pran>{row_dict['PRAN NO']}</pran>
 <wdr-due-to>EN</wdr-due-to>
@@ -82,8 +82,8 @@ def generate_xml(file_input, output_dir):
 </req-dtl>
 \n''')
 
-
         filex.write("</file>")
+
     return result_output
 
 # Command Handlers
