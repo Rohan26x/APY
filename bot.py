@@ -9,20 +9,26 @@ import datetime
 load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 
-# Function to generate XML
-def generate_xml(file_input, fn):
-    dt = datetime.datetime.now()
-    result_file = fn + ".xml"
-    result_output = os.path.join("output", result_file)
+# Initialize datetime for XML generation
+dt = datetime.datetime.now()
 
+# Temporary storage for user interactions
+user_data = {}
+
+# Function to generate XML
+def generate_xml(file_input, output_dir):
+    # Read the Excel file
     df = pd.read_excel(file_input)
 
-    os.makedirs("output", exist_ok=True)
+    # Generate a timestamp-based file name
+    output_file_name = f"APY_EXIT_{dt.strftime('%Y%m%d_%H%M%S')}.xml"
+    result_output = os.path.join(output_dir, output_file_name)
 
     with open(result_output, 'w') as filex:
+        # XML Header
         filex.write('''<?xml version="1.0" encoding="utf-8"?>
 <file xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="exitWDR_APY.xsd">
-            \n''')
+    \n''')
 
         filex.write(f'''
 <header>
@@ -67,50 +73,71 @@ def generate_xml(file_input, fn):
 \n''')
 
         filex.write("</file>")
-
     return result_output
 
-async def start(update: Update, context: CallbackContext):
-    await update.message.reply_text(
-        "Welcome! Please upload your Excel file to convert it to XML."
+# Command Handlers
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text(
+        "Welcome to the APY EXIT Converter Bot! Please upload an Excel file to start."
     )
 
-async def handle_file(update: Update, context: CallbackContext):
+def file_handler(update: Update, context: CallbackContext):
     user = update.message.from_user
-    file = update.message.document
+    user_id = user.id
+    user_data[user_id] = {}
 
     # Save uploaded file
+    file = update.message.document
     file_name = file.file_name
     file_path = os.path.join("uploads", file_name)
 
     os.makedirs("uploads", exist_ok=True)
-    await file.get_file().download(file_path)
+    file.download(file_path)
 
-    # Extract filename without extension
-    fn = os.path.splitext(file_name)[0]
+    user_data[user_id]['file_input'] = file_path
 
-    # Generate XML
-    result_path = generate_xml(file_path, fn)
+    update.message.reply_text(
+        "File received! Generating the XML file based on your input..."
+    )
 
-    # Send the XML back to the user
-    with open(result_path, 'rb') as result_file:
-        await update.message.reply_document(
-            document=InputFile(result_file),
-            filename=os.path.basename(result_path),
-            caption="Here is your XML file!"
-        )
+    try:
+        # Create output directory
+        output_dir = "output"
+        os.makedirs(output_dir, exist_ok=True)
 
-    # Cleanup temporary files
-    os.remove(file_path)
-    os.remove(result_path)
+        # Generate XML
+        result_path = generate_xml(file_path, output_dir)
 
+        # Send the generated XML back to the user
+        with open(result_path, 'rb') as result_file:
+            update.message.reply_document(
+                document=InputFile(result_file),
+                filename=os.path.basename(result_path),
+                caption="XML file generated successfully!"
+            )
+
+        # Cleanup temporary files
+        os.remove(file_path)
+        os.remove(result_path)
+
+    except KeyError as e:
+        update.message.reply_text(f"Missing column in the Excel file: {str(e)}")
+    except Exception as e:
+        update.message.reply_text(f"An error occurred: {str(e)}")
+
+# Main Function to Run the Bot
 def main():
-    application = Application.builder().token(TOKEN).build()
+    TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+    updater = Updater(TOKEN)
 
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.Document.ALL, handle_file))
+    dispatcher = updater.dispatcher
 
-    application.run_polling()
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(MessageHandler(Filters.document, file_handler))
+
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == "__main__":
     main()
+
