@@ -52,7 +52,8 @@ def generate_xml(file_input, output_dir):
                         row_dict[key] = ""  # Handle NaN values explicitly
                 else:
                     row_dict[key] = str(value)
-
+            
+            xd = str.split(row['EXIT DATE'], " ")
             # Write data for each row in the XML
             filex.write(f'''
 <req-dtl>
@@ -61,8 +62,9 @@ def generate_xml(file_input, output_dir):
 <wdr-type>P</wdr-type>
 <share-to-wdr>100</share-to-wdr>
 <share-to-annuity>0</share-to-annuity>
-<exit-date>{row_dict['EXIT DATE']}</exit-date>
-<reason-of-closure>1</reason-of-closure>
+<exit-date>{xd[0]}</exit-date>
+<reason-of-closure>3</reason-of-closure>
+<specify>I am not interested please close my account</specify>
 <subs-bank-dtls>
 <bank-ifs-flag>Y</bank-ifs-flag>
 <account-no>{row_dict['ACC NO']}</account-no>
