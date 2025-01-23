@@ -53,11 +53,11 @@ def generate_xml(file_input, output_dir):
                 else:
                     row_dict[key] = str(value)
             
-            xd = str.split(row['EXIT DATE'], " ")
+            xd = str.split(row['EXIT_DATE'], " ")
             # Write data for each row in the XML
             filex.write(f'''
 <req-dtl>
-<pran>{row_dict['PRAN NO']}</pran>
+<pran>{row_dict['PRAN_NO']}</pran>
 <wdr-due-to>EN</wdr-due-to>
 <wdr-type>P</wdr-type>
 <share-to-wdr>100</share-to-wdr>
@@ -67,11 +67,11 @@ def generate_xml(file_input, output_dir):
 <specify>I am not interested please close my account</specify>
 <subs-bank-dtls>
 <bank-ifs-flag>Y</bank-ifs-flag>
-<account-no>{row_dict['ACC NO']}</account-no>
+<account-no>{row_dict['ACC_NO']}</account-no>
 <bank-ifs-code>PUNB0SUPGB5</bank-ifs-code>
 <bank-micr-code></bank-micr-code>
 <bank-name>PUPGB</bank-name>
-<bank-branch>{row_dict['SOL NO']}</bank-branch>
+<bank-branch>{row_dict['SOL_NO']}</bank-branch>
 <bank-address>{row_dict['BRANCH']}</bank-address>
 <bank-pin>{row_dict['PINCODE']}</bank-pin>
 <active-bank-account>Y</active-bank-account>
