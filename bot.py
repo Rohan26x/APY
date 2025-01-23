@@ -53,7 +53,8 @@ def generate_xml(file_input, output_dir):
                 else:
                     row_dict[key] = str(value)
             
-            xd = str.split(row['EXIT_DATE'], " ")
+            exit_date_str = str(row_dict['EXIT_DATE'])  
+            xd = exit_date_str.split(" ")  
             # Write data for each row in the XML
             filex.write(f'''
 <req-dtl>
